@@ -1,12 +1,13 @@
 package main
 
 import (
+	"calculator-grpc/calculatorpb"
 	"context"
 	"fmt"
 	"io"
 	"log"
-
-	"calculator-grpc/calculatorpb"
+	"math/rand"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -21,7 +22,8 @@ func main() {
 
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 	//doUnary(c)
-	doServerStreaming(c)
+	//doServerStreaming(c)
+	doClientStreaming(c)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -55,4 +57,25 @@ func doServerStreaming(c calculatorpb.CalculatorServiceClient) {
 		}
 		log.Printf("Respuesta PrimeNumberDecomposition %v", msg.GetPrimeFactor())
 	}
+}
+
+func doClientStreaming(c calculatorpb.CalculatorServiceClient) {
+	stream, err := c.ComputeAverage(context.Background())
+	if err != nil {
+		log.Fatalf("Error llamando a funcion ComputeAverage %v", err)
+	}
+	for i := 0; i < 5; i++ {
+		randomNumber := (rand.Float64() * float64(i)) + float64(i)
+		req := &calculatorpb.ComputeAverageRequest{
+			Number: randomNumber,
+		}
+		fmt.Printf("Enviando %v\n", randomNumber)
+		stream.Send(req)
+		time.Sleep(1000 * time.Millisecond)
+	}
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Error recibiendo mensage del server %v", err)
+	}
+	fmt.Printf("El promedio es: %v", res.GetAverage())
 }
