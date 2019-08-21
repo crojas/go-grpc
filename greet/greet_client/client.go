@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"strconv"
+	"time"
 
 	"greet-grpc/greetpb"
 
@@ -21,7 +23,8 @@ func main() {
 	c := greetpb.NewGreetServiceClient(cc)
 	//fmt.Printf("Cliente creado %f", c)
 	//doUnary(c)
-	doServerStreaming(c)
+	//doServerStreaming(c)
+	doClientStreaming(c)
 }
 
 func doUnary(c greetpb.GreetServiceClient) {
@@ -60,4 +63,28 @@ func doServerStreaming(c greetpb.GreetServiceClient) {
 		}
 		log.Printf("Respuesta GreetManyTimes %v", msg.GetResult())
 	}
+}
+
+func doClientStreaming(c greetpb.GreetServiceClient) {
+	stream, err := c.LongGreet(context.Background())
+	if err != nil {
+		log.Fatalf("error llamando a LongGreet", err)
+	}
+	for i := 0; i < 10; i++ {
+		msg := "Carlos " + strconv.Itoa(i)
+		req := &greetpb.LongGreetRequest{
+			Greeting: &greetpb.Greeting{
+				FirstName: msg,
+				LastName:  "Rojas",
+			},
+		}
+		fmt.Printf("Enviando %v\n", msg)
+		stream.Send(req)
+		time.Sleep(100 * time.Millisecond)
+	}
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatalf("Error recibiendo mensage del server %v", err)
+	}
+	fmt.Printf("Respuesta LongGreet %v", res.GetResult())
 }
