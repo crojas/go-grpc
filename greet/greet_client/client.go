@@ -24,7 +24,8 @@ func main() {
 	//fmt.Printf("Cliente creado %f", c)
 	//doUnary(c)
 	//doServerStreaming(c)
-	doClientStreaming(c)
+	//doClientStreaming(c)
+	doBiDirectionalStreaming(c)
 }
 
 func doUnary(c greetpb.GreetServiceClient) {
@@ -87,4 +88,42 @@ func doClientStreaming(c greetpb.GreetServiceClient) {
 		log.Fatalf("Error recibiendo mensage del server %v", err)
 	}
 	fmt.Printf("Respuesta LongGreet %v", res.GetResult())
+}
+
+func doBiDirectionalStreaming(c greetpb.GreetServiceClient) {
+	stream, err := c.GreetEveryone(context.Background())
+	if err != nil {
+		log.Fatalf("error llamando a GreetEveryone")
+	}
+	waitc := make(chan struct{})
+	// Goroutine para enviar mensajes
+	go func() {
+		for i := 0; i < 10; i++ {
+			msg := "Carlos " + strconv.Itoa(i)
+			req := &greetpb.GreetEveryoneRequest{
+				Greeting: &greetpb.Greeting{
+					FirstName: msg,
+				},
+			}
+			fmt.Printf("Enviando %v\n", msg)
+			stream.Send(req)
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+	// Goroutine para recibir mensajes
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error reciviendo mensajes %v", err)
+			}
+			fmt.Printf("Recibiendo: %v\n", res.GetResult())
+		}
+		close(waitc)
+	}()
+	<-waitc
 }
