@@ -61,6 +61,29 @@ func (*server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
 	}
 }
 
+// Bi directional streaming call
+func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) error {
+	fmt.Printf("funcion GreetEveryone invocada con stream del cliente")
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			log.Fatalf("Error recibiendo stream del cliente %v", err)
+			return err
+		}
+		firstName := req.GetGreeting().GetFirstName()
+		result := "Hola " + firstName + " !"
+		err = stream.Send(&greetpb.GreetEveryoneResponse{
+			Result: result,
+		})
+		if err != nil {
+			log.Fatalf("Error enviando data al cliente %v", err)
+		}
+	}
+}
+
 func main() {
 	fmt.Println("Mi primer GRPC")
 
