@@ -23,7 +23,8 @@ func main() {
 	c := calculatorpb.NewCalculatorServiceClient(cc)
 	//doUnary(c)
 	//doServerStreaming(c)
-	doClientStreaming(c)
+	//doClientStreaming(c)
+	doBiDirectionalStreaming(c)
 }
 
 func doUnary(c calculatorpb.CalculatorServiceClient) {
@@ -78,4 +79,41 @@ func doClientStreaming(c calculatorpb.CalculatorServiceClient) {
 		log.Fatalf("Error recibiendo mensage del server %v", err)
 	}
 	fmt.Printf("El promedio es: %v", res.GetAverage())
+}
+
+func doBiDirectionalStreaming(c calculatorpb.CalculatorServiceClient) {
+	stream, err := c.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatalf("Error llamando a funcion FindMaximum %v", err)
+	}
+	waitc := make(chan struct{})
+
+	// Enviando numeros en una goroutine.
+	go func() {
+		for i := 0; i < 10; i++ {
+			number := rand.Int63n(100)
+			fmt.Printf("Enviando %v\n", number)
+			stream.Send(&calculatorpb.FindMaximumRequest{
+				Number: number,
+			})
+			time.Sleep(1000 * time.Millisecond)
+		}
+		stream.CloseSend()
+	}()
+
+	// Recibiendo el numero maximo.
+	go func() {
+		for {
+			res, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Fatalf("Error recibiendo numero maximo %v\n", err)
+			}
+			fmt.Printf("Maximo de los enviados: %v\n", res.GetMax())
+		}
+		close(waitc)
+	}()
+	<-waitc
 }

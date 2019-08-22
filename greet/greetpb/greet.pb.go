@@ -440,7 +440,7 @@ type GreetServiceClient interface {
 	GreetManyTimes(ctx context.Context, in *GreetManyTimesRequest, opts ...grpc.CallOption) (GreetService_GreetManyTimesClient, error)
 	// Client streaming
 	LongGreet(ctx context.Context, opts ...grpc.CallOption) (GreetService_LongGreetClient, error)
-	// Server and Client streaming
+	// Bi Directional streaming
 	GreetEveryone(ctx context.Context, opts ...grpc.CallOption) (GreetService_GreetEveryoneClient, error)
 }
 
@@ -566,7 +566,7 @@ type GreetServiceServer interface {
 	GreetManyTimes(*GreetManyTimesRequest, GreetService_GreetManyTimesServer) error
 	// Client streaming
 	LongGreet(GreetService_LongGreetServer) error
-	// Server and Client streaming
+	// Bi Directional streaming
 	GreetEveryone(GreetService_GreetEveryoneServer) error
 }
 
