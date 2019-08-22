@@ -7,8 +7,11 @@ import (
 	"io"
 	"log"
 	"net"
-
-	"google.golang.org/grpc"
+	"math"
+	
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc"	
 )
 
 type server struct{}
@@ -82,6 +85,20 @@ func (*server) FindMaximum(stream calculatorpb.CalculatorService_FindMaximumServ
 			log.Fatalf("Error enviando maximo %v\n", err)
 		}
 	}
+}
+
+func (*server) SquareRoot(ctx context.Context, req *calculatorpb.SquareRootRequest) (*calculatorpb.SquareRootResponse, error) {
+	fmt.Printf("funcion SquareRoot invocada con stream del cliente")
+	number := req.GetNumber()
+	if number < 0{
+		return nil, status.Errorf(
+			codes.InvalidArgument,
+			"No se puede enviar numero negativos",
+		)
+	}
+	return &calculatorpb.SquareRootResponse{
+		NumberRoot: math.Sqrt(float64(number)),
+	}, nil
 }
 
 func main() {
