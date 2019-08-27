@@ -1,4 +1,4 @@
-module greet-grpc
+module github.com/crojas/go-grpc-course
 
 go 1.12
 

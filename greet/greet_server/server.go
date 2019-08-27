@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"greet-grpc/greetpb"
+	"github.com/crojas/go-grpc-course/greet/greetpb"
 
 	"google.golang.org/grpc"
 )

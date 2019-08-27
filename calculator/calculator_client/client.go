@@ -1,13 +1,14 @@
 package main
 
 import (
-	"calculator-grpc/calculatorpb"
 	"context"
 	"fmt"
 	"io"
 	"log"
 	"math/rand"
 	"time"
+
+	"github.com/crojas/go-grpc-course/calculator/calculatorpb"
 
 	"google.golang.org/grpc"
 )
