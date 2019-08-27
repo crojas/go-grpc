@@ -12,6 +12,8 @@ import (
 	"github.com/crojas/go-grpc-course/greet/greetpb"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type server struct{}
@@ -82,6 +84,24 @@ func (*server) GreetEveryone(stream greetpb.GreetService_GreetEveryoneServer) er
 			log.Fatalf("Error enviando data al cliente %v", err)
 		}
 	}
+}
+
+func (*server) GreetWithDeadLine(ctx context.Context, req *greetpb.GreetWithDeadLineRequest) (*greetpb.GreetWithDeadLineResponse, error) {
+	fmt.Printf("funcion GreetWithDeadLine invocada con cliente v%", req)
+	for i := 0; i < 3; i++ {
+		if ctx.Err() == context.Canceled {
+			// El cliente cancelo la peticion
+			fmt.Println("El cliente ha cancelado la peticion")
+			return nil, status.Error(codes.Canceled, "el cliente ha cancelado la peticion")
+		}
+		time.Sleep(1 * time.Second)
+	}
+	firstName := req.GetGreeting().GetFirstName()
+	result := "Hola " + firstName
+	res := &greetpb.GreetWithDeadLineResponse{
+		Result: result,
+	}
+	return res, nil
 }
 
 func main() {
