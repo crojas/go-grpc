@@ -63,5 +63,7 @@ func main() {
 	s.Stop()
 	fmt.Println("Cerrando listener")
 	lis.Close()
+	fmt.Println("Cerrando conexion a MongoDB")
+	client.Disconnect(context.TODO())
 	fmt.Println("Fin del programa")
 }
