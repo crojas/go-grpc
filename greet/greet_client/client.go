@@ -73,7 +73,7 @@ func doServerStreaming(c greetpb.GreetServiceClient) {
 func doClientStreaming(c greetpb.GreetServiceClient) {
 	stream, err := c.LongGreet(context.Background())
 	if err != nil {
-		log.Fatalf("error llamando a LongGreet", err)
+		log.Fatalf("error llamando a LongGreet %v", err)
 	}
 	for i := 0; i < 10; i++ {
 		msg := "Carlos " + strconv.Itoa(i)
