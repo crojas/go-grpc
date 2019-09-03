@@ -18,13 +18,43 @@ func main() {
 	defer cc.Close()
 	c := blogpb.NewBlogServiceClient(cc)
 	blog := &blogpb.Blog{
-		AuthorId: "Carlos",
-		Title:    "First Blog",
-		Content:  "Esta es una prueba de GRPC and mondodb",
+		AuthorId: "Marianela",
+		Title:    "Segundo Blog",
+		Content:  "Segundo insert",
 	}
-	res, err := c.CreateBlog(context.Background(), &blogpb.CreateBlogRequest{Blog: blog})
+	createBlogRes, err := c.CreateBlog(context.Background(), &blogpb.CreateBlogRequest{Blog: blog})
 	if err != nil {
 		log.Fatalf("Error inesperado %v", err)
 	}
-	fmt.Printf("Blog creado %v", res.GetBlog())
+	fmt.Printf("Blog creado %v", createBlogRes.GetBlog())
+	blogID := createBlogRes.GetBlog().GetId()
+
+	// Llamada para leer pasando el id
+	fmt.Println("Reading the blog")
+
+	_, err2 := c.ReadBlog(context.Background(), &blogpb.ReadBlogRequest{BlogId: "sdfsdfsd"})
+	if err2 != nil {
+		fmt.Printf("Error leyendo con id: sdfsdfsd %v \n", err2)
+	}
+
+	readBlogReq := &blogpb.ReadBlogRequest{BlogId: blogID}
+	readBlogRes, readBlogErr := c.ReadBlog(context.Background(), readBlogReq)
+	if readBlogErr != nil {
+		fmt.Printf("Error leyendo: %v \n", readBlogErr)
+	}
+
+	fmt.Printf("Blog leido: %v \n", readBlogRes)
+
+	// Actualizar Blog
+	newBlog := &blogpb.Blog{
+		Id:       blogID,
+		AuthorId: "Changed Author",
+		Title:    "My First Blog (edited)",
+		Content:  "Content of the first blog, with some awesome additions!",
+	}
+	updateRes, updateErr := c.UpdateBlog(context.Background(), &blogpb.UpdateBlogRequest{Blog: newBlog})
+	if updateErr != nil {
+		fmt.Printf("Error actualizando: %v \n", updateErr)
+	}
+	fmt.Printf("Blog fue actualizado: %v\n", updateRes)
 }
