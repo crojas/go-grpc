@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/crojas/go-grpc-course/blog/blogpb"
@@ -65,4 +66,21 @@ func main() {
 		fmt.Printf("Error eliminando registro: %v \n", deleteErr)
 	}
 	fmt.Printf("Blog eliminado: %v \n", deleteRes)
+
+	// list Blogs
+
+	stream, err := c.ListBlog(context.Background(), &blogpb.ListBlogRequest{})
+	if err != nil {
+		log.Fatalf("error while calling ListBlog RPC: %v", err)
+	}
+	for {
+		res, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatalf("Something happened: %v", err)
+		}
+		fmt.Println(res.GetBlog())
+	}
 }
